@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Advisor - GrowEasy</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <h1><i class="fas fa-chart-line"></i> GrowEasy</h1>
+                <p>AI-Powered Business Ally</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/chatbot" class="active"><i class="fas fa-comments"></i> Business Advisor</a></li>
+                <li><a href="/financial-summarizer"><i class="fas fa-file-invoice-dollar"></i> Financial Summarizer</a></li>
+                <li><a href="/budget-planner"><i class="fas fa-coins"></i> Budget Planner</a></li>
+                <li><a href="/risk-analyzer"><i class="fas fa-shield-alt"></i> Risk Analyzer</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="feature-container">
+        <div class="feature-header">
+            <h1><i class="fas fa-comments"></i> Business Advisor Chatbot</h1>
+            <p>Ask any business-related questions and get expert advice tailored to your SME needs.</p>
+        </div>
+
+        <div class="chatbot-container">
+            <div class="chat-history" id="chatHistory">
+                <div class="welcome-message">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="sender">GrowEasy Assistant</span>
+                            <span class="timestamp">Just now</span>
+                        </div>
+                        <div class="message-text">
+                            <p>Hello! I'm your GrowEasy Business Advisor. I'm here to answer your business questions and provide tailored advice for your SME. How can I help you today?</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Chat messages will appear here -->
+            </div>
+
+            <div class="chat-input">
+                <form id="chatForm">
+                    <input type="text" id="questionInput" placeholder="Type your business question here..." required>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="example-queries">
+            <h3>Example Questions</h3>
+            <div class="example-chips">
+                <button class="chip" onclick="fillQuestion('What are effective cash flow management strategies for a small retail business?')">Cash flow management</button>
+                <button class="chip" onclick="fillQuestion('How can I optimize my marketing budget for better ROI?')">Marketing ROI</button>
+                <button class="chip" onclick="fillQuestion('What tax deductions are commonly overlooked by small businesses?')">Tax deductions</button>
+                <button class="chip" onclick="fillQuestion('How should I approach hiring my first employees?')">Hiring strategies</button>
+                <button class="chip" onclick="fillQuestion('What are the best practices for inventory management?')">Inventory management</button>
+            </div>
+        </div>
+
+        <div class="chat-history-section" id="pastConversations">
+            <h3>Past Conversations</h3>
+            <div class="past-chats-list">
+                {% if chat_history %}
+                    {% for chat in chat_history %}
+                        <div class="past-chat-item">
+                            <div class="past-chat-preview">
+                                <p>{{ chat.messages[0].content[:50] }}{% if chat.messages[0].content|length > 50 %}...{% endif %}</p>
+                                <span class="timestamp">{{ chat.created_at.split('T')[0] }}</span>
+                            </div>
+                            <div class="past-chat-actions">
+                                <button class="btn-icon" onclick="showChatDetails('{{ chat.id }}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="no-data-message">No past conversations yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div id="chatDetailsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Conversation Details</h2>
+                    <span class="close-modal" onclick="closeModal('chatDetailsModal')">&times;</span>
+                </div>
+                <div class="modal-body" id="chatDetailsContent">
+                    <!-- Chat details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <h3><i class="fas fa-chart-line"></i> GrowEasy</h3>
+                <p>AI-Powered Business Ally</p>
+            </div>
+            <div class="footer-links">
+                <div class="footer-section">
+                    <h4>Features</h4>
+                    <ul>
+                        <li><a href="/chatbot">Business Advisor</a></li>
+                        <li><a href="/financial-summarizer">Financial Summarizer</a></li>
+                        <li><a href="/budget-planner">Budget Planner</a></li>
+                        <li><a href="/risk-analyzer">Risk Analyzer</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">API</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 GrowEasy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatForm = document.getElementById('chatForm');
+            const questionInput = document.getElementById('questionInput');
+            const chatHistory = document.getElementById('chatHistory');
+            
+            chatForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const question = questionInput.value.trim();
+                if (!question) return;
+                
+                // Add user message to chat
+                addMessage('You', question, true);
+                
+                // Clear input
+                questionInput.value = '';
+                
+                // Show typing indicator
+                const typingIndicator = document.createElement('div');
+                typingIndicator.className = 'typing-indicator';
+                typingIndicator.innerHTML = `
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-text">
+                            <div class="typing-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                chatHistory.appendChild(typingIndicator);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+                
+                try {
+                    // Send question to API
+                    console.log("Sending request to /chatbot with question:", question);
+                    const response = await fetch('/chatbot', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            'question': question
+                        })
+                    });
+    
+                    console.log("Response status:", response.status);
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error("Server error response:", errorText);
+                        throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorText}`);
+                    }
+    
+                    const data = await response.json();
+                    console.log("Response data:", data);
+                    
+                    // Remove typing indicator
+                    chatHistory.removeChild(typingIndicator);
+                    
+                    // Add assistant's response
+                    addMessage('GrowEasy Assistant', data.answer, false);
+                    
+                } catch (error) {
+                    // Remove typing indicator
+                    chatHistory.removeChild(typingIndicator);
+                    
+                    // Add error message
+                    addMessage('GrowEasy Assistant', 'Sorry, I encountered an error. Please try again.', false);
+                    console.error('Error details:', error);
+                }
+            });
+            
+            function addMessage(sender, text, isUser) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = isUser ? 'message user-message' : 'message assistant-message';
+                
+                // Format the message text with proper structure
+                let formattedText = text;
+                
+                // Convert bullet points for better display
+                formattedText = formattedText.replace(/•/g, '●');
+                
+                messageDiv.innerHTML = `
+                    <div class="message-avatar">
+                        <i class="${isUser ? 'fas fa-user' : 'fas fa-robot'}"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="sender">${sender}</span>
+                            <span class="timestamp">${getCurrentTime()}</span>
+                        </div>
+                        <div class="message-text">
+                            ${formatMessageText(formattedText)}
+                        </div>
+                    </div>
+                `;
+                
+                chatHistory.appendChild(messageDiv);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }
+            function formatMessageText(text) {
+                // Convert markdown-style formatting to HTML
+                
+                // Convert headers
+                text = text.replace(/^###\s*(.*?)$/gm, '<h4>$1</h4>');
+                text = text.replace(/^##\s*(.*?)$/gm, '<h3>$1</h3>');
+                text = text.replace(/^#\s*(.*?)$/gm, '<h2>$1</h2>');
+                
+                // Convert bold and italic
+                text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                
+                // Convert lists
+                text = text.replace(/^\d+\.\s+(.*?)$/gm, '<li>$1</li>');
+                text = text.replace(/^-\s+(.*?)$/gm, '<li>$1</li>');
+                
+                // Add proper list tags
+                if (text.includes('<li>')) {
+                    text = text.replace(/(<li>.*?<\/li>)+/gs, function(match) {
+                        if (match.startsWith('<li>')) {
+                            return '<ul>' + match + '</ul>';
+                        }
+                        return match;
+                    });
+                }
+                
+                // Convert line breaks to paragraphs
+                let paragraphs = text.split(/\n\s*\n/);
+                let formattedParagraphs = paragraphs.map(p => {
+                    // Skip if it's already wrapped in HTML tags
+                    if (p.trim().startsWith('<')) {
+                        return p;
+                    }
+                    return `<p>${p.trim()}</p>`;
+                });
+                
+                return formattedParagraphs.join('');
+            }
+            
+            function getCurrentTime() {
+                const now = new Date();
+                let hours = now.getHours();
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                return `${hours}:${minutes} ${ampm}`;
+            }
+        });
+        
+        function fillQuestion(question) {
+            document.getElementById('questionInput').value = question;
+            document.getElementById('questionInput').focus();
+        }
+        
+        function showChatDetails(chatId) {
+            // In a real implementation, this would fetch the chat details from local storage
+            // For now, we'll simulate it with the chat history data
+            
+            const chatHistory = JSON.parse(localStorage.getItem('chat_history')) || [];
+            const chat = chatHistory.find(c => c.id === chatId);
+            
+            if (chat) {
+                const modalContent = document.getElementById('chatDetailsContent');
+                let messagesHtml = '';
+                
+                chat.messages.forEach(msg => {
+                    const isUser = msg.role === 'user';
+                    messagesHtml += `
+                        <div class="message ${isUser ? 'user-message' : 'assistant-message'}">
+                            <div class="message-avatar">
+                                <i class="${isUser ? 'fas fa-user' : 'fas fa-robot'}"></i>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="sender">${isUser ? 'You' : 'GrowEasy Assistant'}</span>
+                                    <span class="timestamp">${chat.created_at.split('T')[0]}</span>
+                                </div>
+                                <div class="message-text">
+                                    ${formatMessageText(msg.content)}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                modalContent.innerHTML = messagesHtml;
+                document.getElementById('chatDetailsModal').style.display = 'block';
+            }
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modals = document.getElementsByClassName('modal');
+            for (let i = 0; i < modals.length; i++) {
+                if (event.target === modals[i]) {
+                    modals[i].style.display = 'none';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

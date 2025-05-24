@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk Analyzer - GrowEasy</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <h1><i class="fas fa-chart-line"></i> GrowEasy</h1>
+                <p>AI-Powered Business Ally</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/chatbot"><i class="fas fa-comments"></i> Business Advisor</a></li>
+                <li><a href="/financial-summarizer"><i class="fas fa-file-invoice-dollar"></i> Financial Summarizer</a></li>
+                <li><a href="/budget-planner"><i class="fas fa-coins"></i> Budget Planner</a></li>
+                <li><a href="/risk-analyzer" class="active"><i class="fas fa-shield-alt"></i> Risk Analyzer</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="feature-container">
+        <div class="feature-header">
+            <h1><i class="fas fa-shield-alt"></i> Risk-Aware Financial Decision Guide</h1>
+            <p>Evaluate financial decisions for potential risks and get mitigation strategies to protect your business.</p>
+        </div>
+
+        <div class="risk-analyzer-container">
+            <div class="form-section">
+                <h2>Analyze Financial Decision Risk</h2>
+                <form id="riskForm" class="risk-form">
+                    <div class="form-group">
+                        <label for="decision">Financial Decision</label>
+                        <input type="text" id="decision" name="decision" placeholder="E.g., Purchase new equipment, Expand to new location" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="context">Decision Context</label>
+                        <textarea id="context" name="context" rows="4" placeholder="Describe the decision in detail including timing, reasoning, and expected benefits" required></textarea>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="industry">Industry</label>
+                            <select id="industry" name="industry" required>
+                                <option value="">Select Industry</option>
+                                <option value="Retail">Retail</option>
+                                <option value="Technology">Technology</option>
+                                <option value="Food Service">Food Service</option>
+                                <option value="Manufacturing">Manufacturing</option>
+                                <option value="Healthcare">Healthcare</option>
+                                <option value="Consulting">Consulting</option>
+                                <option value="Construction">Construction</option>
+                                <option value="Finance">Finance</option>
+                                <option value="Education">Education</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="investmentAmount">Investment Amount ($)</label>
+                            <input type="number" id="investmentAmount" name="investment_amount" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="reset" class="btn btn-secondary">Reset</button>
+                        <button type="submit" id="submitRiskBtn" class="btn btn-primary">Analyze Risk</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="risk-results-section" id="riskResultsSection" style="display: none;">
+                <div class="risk-results-container">
+                    <h2>Risk Assessment Report</h2>
+                    
+                    <div class="decision-summary">
+                        <h3>Decision: <span id="decisionTitle"></span></h3>
+                        <p class="investment-amount">Investment Amount: <span id="investmentAmount"></span></p>
+                    </div>
+                    
+                    <div class="risk-assessment">
+                        <div id="riskAssessmentContent" class="content-area"></div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="downloadRiskBtn" class="btn btn-secondary">
+                            <i class="fas fa-download"></i> Download Assessment
+                        </button>
+                        <button id="newRiskBtn" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> New Assessment
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="past-assessments-section">
+                <h2>Previous Risk Assessments</h2>
+                <div class="past-assessments-list" id="pastAssessmentsList">
+                    {% if assessments %}
+                        {% for assessment in assessments %}
+                            <div class="past-assessment-item">
+                                <div class="past-assessment-info">
+                                    <h4>{{ assessment.decision }}</h4>
+                                    <p>{{ assessment.industry }} - ${{ assessment.investment_amount }}</p>
+                                    <span class="timestamp">{{ assessment.created_at.split('T')[0] }}</span>
+                                </div>
+                                <div class="past-assessment-actions">
+                                    <button class="btn-icon" onclick="viewAssessment('{{ assessment.id }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="no-data-message">No previous risk assessments yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div id="assessmentModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Risk Assessment Details</h2>
+                    <span class="close-modal" onclick="closeModal('assessmentModal')">&times;</span>
+                </div>
+                <div class="modal-body" id="assessmentModalContent">
+                    <!-- Assessment details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <h3><i class="fas fa-chart-line"></i> GrowEasy</h3>
+                <p>AI-Powered Business Ally</p>
+            </div>
+            <div class="footer-links">
+                <div class="footer-section">
+                    <h4>Features</h4>
+                    <ul>
+                        <li><a href="/chatbot">Business Advisor</a></li>
+                        <li><a href="/financial-summarizer">Financial Summarizer</a></li>
+                        <li><a href="/budget-planner">Budget Planner</a></li>
+                        <li><a href="/risk-analyzer">Risk Analyzer</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">API</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 GrowEasy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const riskForm = document.getElementById('riskForm');
+            const submitRiskBtn = document.getElementById('submitRiskBtn');
+            const riskResultsSection = document.getElementById('riskResultsSection');
+            const newRiskBtn = document.getElementById('newRiskBtn');
+            const downloadRiskBtn = document.getElementById('downloadRiskBtn');
+            
+            // Handle form submission
+            riskForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Show loading state
+                submitRiskBtn.disabled = true;
+                submitRiskBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+                
+                // Get form data
+                const formData = new FormData(riskForm);
+                
+                try {
+                    const response = await fetch('/risk-analyzer', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // Reset button state
+                    submitRiskBtn.innerHTML = 'Analyze Risk';
+                    submitRiskBtn.disabled = false;
+                    
+                    // Update decision details
+                    document.getElementById('decisionTitle').textContent = formData.get('decision');
+                    document.getElementById('investmentAmount').textContent = '$' + formData.get('investment_amount');
+                    
+                    // Display risk assessment
+                    document.getElementById('riskAssessmentContent').innerHTML = formatContent(data.assessment.analysis);
+                    
+                    // Show results section
+                    riskResultsSection.style.display = 'block';
+                    
+                    // Scroll to results
+                    riskResultsSection.scrollIntoView({ behavior: 'smooth' });
+                    
+                    // Save to local storage (for a real implementation)
+                    saveRiskAssessment(data);
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    submitRiskBtn.innerHTML = 'Analyze Risk';
+                    submitRiskBtn.disabled = false;
+                    alert('Error analyzing risk. Please try again.');
+                }
+            });
+            
+            // New assessment button
+            newRiskBtn.addEventListener('click', function() {
+                resetForm();
+            });
+            
+            // Download assessment
+            downloadRiskBtn.addEventListener('click', function() {
+                // Create a text file with the risk assessment
+                const decision = document.getElementById('decisionTitle').textContent;
+                const investment = document.getElementById('investmentAmount').textContent;
+                const assessment = document.getElementById('riskAssessmentContent').innerText;
+                
+                const content = `
+                    RISK ASSESSMENT REPORT
+                    Generated by GrowEasy on ${new Date().toLocaleDateString()}
+                    
+                    DECISION: ${decision}
+                    INVESTMENT AMOUNT: ${investment}
+                    
+                    RISK ASSESSMENT:
+                    ${assessment}
+                `;
+                
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'risk_assessment_' + Date.now() + '.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+            
+            function resetForm() {
+                riskForm.reset();
+                riskResultsSection.style.display = 'none';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            
+            function formatContent(text) {
+                // Convert markdown-style formatting to HTML
+                
+                // Convert headers
+                text = text.replace(/^###\s*(.*?)$/gm, '<h4>$1</h4>');
+                text = text.replace(/^##\s*(.*?)$/gm, '<h3>$1</h3>');
+                text = text.replace(/^#\s*(.*?)$/gm, '<h2>$1</h2>');
+                
+                // Convert bold and italic
+                text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                
+                // Convert lists
+                text = text.replace(/^\d+\.\s+(.*?)$/gm, '<li>$1</li>');
+                text = text.replace(/^-\s+(.*?)$/gm, '<li>$1</li>');
+                
+                // Add proper list tags
+                if (text.includes('<li>')) {
+                    text = text.replace(/(<li>.*?<\/li>)+/gs, function(match) {
+                        if (match.startsWith('<li>')) {
+                            return '<ul>' + match + '</ul>';
+                        }
+                        return match;
+                    });
+                }
+                
+                // Convert line breaks to paragraphs
+                let paragraphs = text.split(/\n\s*\n/);
+                let formattedParagraphs = paragraphs.map(p => {
+                    // Skip if it's already wrapped in HTML tags
+                    if (p.trim().startsWith('<')) {
+                        return p;
+                    }
+                    return `<p>${p.trim()}</p>`;
+                });
+                
+                return formattedParagraphs.join('');
+            }
+            
+            function saveRiskAssessment(data) {
+                // In a real implementation, this would save to local storage or IndexedDB
+                console.log('Risk assessment saved:', data);
+            }
+        });
+        
+        // View past assessment
+        function viewAssessment(assessmentId) {
+            // In a real implementation, this would fetch the assessment from local storage
+            // For now, we'll simulate it with a modal
+            
+            const modalContent = document.getElementById('assessmentModalContent');
+            modalContent.innerHTML = `
+                <div class="assessment-header">
+                    <h3>Decision: <span>Example Financial Decision</span></h3>
+                    <p>Investment Amount: <span>$25,000</span></p>
+                    <p>Industry: <span>Technology</span></p>
+                </div>
+                
+                <div class="assessment-details">
+                    <h3>Risk Assessment</h3>
+                    <div class="assessment-content">
+                        <p>This is a placeholder for the risk assessment details of assessment ${assessmentId}.</p>
+                        <p>In a real implementation, this would show the actual saved assessment data.</p>
+                    </div>
+                </div>
+                
+                <div class="assessment-actions">
+                    <button class="btn btn-secondary" onclick="downloadAssessment('${assessmentId}')">
+                        <i class="fas fa-download"></i> Download Assessment
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('assessmentModal').style.display = 'block';
+        }
+        
+        function downloadAssessment(assessmentId) {
+            // Placeholder for download functionality
+            console.log('Downloading assessment:', assessmentId);
+            // In a real implementation, this would generate a file for download
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modals = document.getElementsByClassName('modal');
+            for (let i = 0; i < modals.length; i++) {
+                if (event.target === modals[i]) {
+                    modals[i].style.display = 'none';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

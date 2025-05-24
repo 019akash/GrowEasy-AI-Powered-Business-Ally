@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Summarizer - GrowEasy</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/styles.css') }}">
+    
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <h1><i class="fas fa-chart-line"></i> GrowEasy</h1>
+                <p>AI-Powered Business Ally</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/chatbot"><i class="fas fa-comments"></i> Business Advisor</a></li>
+                <li><a href="/financial-summarizer" class="active"><i class="fas fa-file-invoice-dollar"></i> Financial Summarizer</a></li>
+                <li><a href="/budget-planner"><i class="fas fa-coins"></i> Budget Planner</a></li>
+                <li><a href="/risk-analyzer"><i class="fas fa-shield-alt"></i> Risk Analyzer</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="feature-container">
+        <div class="feature-header">
+            <h1><i class="fas fa-file-invoice-dollar"></i> Financial Report Summarizer</h1>
+            <p>Upload your financial reports and receive concise summaries with actionable improvement advice.</p>
+        </div>
+
+        <div class="financial-summarizer-container">
+            <div class="upload-section">
+                <h2>Upload Financial Report</h2>
+                <div class="upload-box" id="uploadBox">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="upload-icon">
+                            <i class="fas fa-file-upload"></i>
+                        </div>
+                        <p>Drag & drop your financial report here or</p>
+                        <label for="fileInput" class="btn btn-secondary">Choose File</label>
+                        <input type="file" id="fileInput" name="file" accept=".csv,.xls,.xlsx,.txt,.pdf">
+                        <div id="fileInfo" class="file-info"></div>
+                        <button type="submit" id="submitBtn" class="btn btn-primary" disabled>Analyze Report</button>
+                    </form>
+                </div>
+                <div class="supported-formats">
+                    <p>Supported formats: CSV, Excel, TXT, PDF</p>
+                    <p class="info-text">For best results, ensure your financial report contains clear income, expense, and balance sheet data.</p>
+                </div>
+            </div>
+
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-container">
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="summary">Summary</button>
+                        <button class="tab-btn" data-tab="advice">Improvement Advice</button>
+                        <button class="tab-btn" data-tab="report">Original Report</button>
+                    </div>
+
+                    <div class="tab-content">
+                        <div id="summary" class="tab-pane active">
+                            <h3>Financial Summary</h3>
+                            <div id="summaryContent" class="content-area"></div>
+                        </div>
+                        <div id="advice" class="tab-pane">
+                            <h3>Improvement Recommendations</h3>
+                            <div id="adviceContent" class="content-area"></div>
+                        </div>
+                        <div id="report" class="tab-pane">
+                            <h3>Original Report Content</h3>
+                            <div id="reportContent" class="content-area report-preview"></div>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="downloadBtn" class="btn btn-secondary">
+                            <i class="fas fa-download"></i> Download Analysis
+                        </button>
+                        <button id="newAnalysisBtn" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> New Analysis
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="past-reports-section">
+                <h2>Previous Analyses</h2>
+                <div class="past-reports-list" id="pastReportsList">
+                    {% if reports %}
+                        {% for report in reports %}
+                            <div class="past-report-item">
+                                <div class="past-report-info">
+                                    <h4>{{ report.filename }}</h4>
+                                    <span class="timestamp">{{ report.created_at.split('T')[0] }}</span>
+                                </div>
+                                <div class="past-report-actions">
+                                    <button class="btn-icon" onclick="viewReport('{{ report.id }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="no-data-message">No previous analyses yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div id="reportModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Report Analysis</h2>
+                    <span class="close-modal" onclick="closeModal('reportModal')">&times;</span>
+                </div>
+                <div class="modal-body" id="reportModalContent">
+                    <!-- Report details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <h3><i class="fas fa-chart-line"></i> GrowEasy</h3>
+                <p>AI-Powered Business Ally</p>
+            </div>
+            <div class="footer-links">
+                <div class="footer-section">
+                    <h4>Features</h4>
+                    <ul>
+                        <li><a href="/chatbot">Business Advisor</a></li>
+                        <li><a href="/financial-summarizer">Financial Summarizer</a></li>
+                        <li><a href="/budget-planner">Budget Planner</a></li>
+                        <li><a href="/risk-analyzer">Risk Analyzer</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">API</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 GrowEasy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('fileInput');
+            const fileInfo = document.getElementById('fileInfo');
+            const submitBtn = document.getElementById('submitBtn');
+            const uploadForm = document.getElementById('uploadForm');
+            const resultsSection = document.getElementById('resultsSection');
+            const newAnalysisBtn = document.getElementById('newAnalysisBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            
+            // Handle file selection
+            fileInput.addEventListener('change', function() {
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    fileInfo.innerHTML = `
+                        <div class="selected-file">
+                            <i class="fas fa-file-alt"></i>
+                            <span>${file.name}</span>
+                            <span class="file-size">${formatFileSize(file.size)}</span>
+                        </div>
+                    `;
+                    submitBtn.disabled = false;
+                } else {
+                    fileInfo.innerHTML = '';
+                    submitBtn.disabled = true;
+                }
+            });
+            
+            // Handle form submission
+            uploadForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                if (!fileInput.files.length) return;
+                
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+                
+                try {
+                    const response = await fetch('/financial-summarizer', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // Reset button state
+                    submitBtn.innerHTML = 'Analyze Report';
+                    
+                    // Display results
+                    document.getElementById('summaryContent').innerHTML = formatContent(data.summary);
+                    document.getElementById('adviceContent').innerHTML = formatContent(data.advice);
+                    document.getElementById('reportContent').textContent = fileInput.files[0].name;
+                    
+                    // Show results section
+                    resultsSection.style.display = 'block';
+                    
+                    // Save to local storage
+                    saveReport(data);
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    submitBtn.innerHTML = 'Analyze Report';
+                    submitBtn.disabled = false;
+                    alert('Error analyzing the report. Please try again.');
+                }
+            });
+            
+            // Handle tab switching
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all tabs
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    document.getElementById(this.dataset.tab).classList.add('active');
+                });
+            });
+            
+            // New analysis button
+            newAnalysisBtn.addEventListener('click', function() {
+                resetForm();
+            });
+            
+            // Download analysis
+            downloadBtn.addEventListener('click', function() {
+                // Create a text file with the analysis
+                const summary = document.getElementById('summaryContent').innerText;
+                const advice = document.getElementById('adviceContent').innerText;
+                
+                const content = `
+                    FINANCIAL REPORT ANALYSIS
+                    Generated by GrowEasy on ${new Date().toLocaleDateString()}
+                    
+                    SUMMARY:
+                    ${summary}
+                    
+                    IMPROVEMENT RECOMMENDATIONS:
+                    ${advice}
+                `;
+                
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'financial_analysis_' + Date.now() + '.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+            
+            function resetForm() {
+                uploadForm.reset();
+                fileInfo.innerHTML = '';
+                submitBtn.disabled = true;
+                resultsSection.style.display = 'none';
+            }
+            
+            function formatFileSize(bytes) {
+                if (bytes < 1024) return bytes + ' bytes';
+                else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+                else return (bytes / 1048576).toFixed(1) + ' MB';
+            }
+            
+            function formatContent(text) {
+                // Convert markdown-style formatting to HTML
+                
+                // Convert headers
+                text = text.replace(/^###\s*(.*?)$/gm, '<h4>$1</h4>');
+                text = text.replace(/^##\s*(.*?)$/gm, '<h3>$1</h3>');
+                text = text.replace(/^#\s*(.*?)$/gm, '<h2>$1</h2>');
+                
+                // Convert bold and italic
+                text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                
+                // Convert lists
+                text = text.replace(/^\d+\.\s+(.*?)$/gm, '<li>$1</li>');
+                text = text.replace(/^-\s+(.*?)$/gm, '<li>$1</li>');
+                
+                // Add proper list tags
+                if (text.includes('<li>')) {
+                    text = text.replace(/(<li>.*?<\/li>)+/gs, function(match) {
+                        if (match.startsWith('<li>')) {
+                            return '<ul>' + match + '</ul>';
+                        }
+                        return match;
+                    });
+                }
+                
+                // Convert line breaks to paragraphs
+                let paragraphs = text.split(/\n\s*\n/);
+                let formattedParagraphs = paragraphs.map(p => {
+                    // Skip if it's already wrapped in HTML tags
+                    if (p.trim().startsWith('<')) {
+                        return p;
+                    }
+                    return `<p>${p.trim()}</p>`;
+                });
+                
+                return formattedParagraphs.join('');
+            }
+            
+            function saveReport(data) {
+                // In a real implementation, this would save to local storage or IndexedDB
+                console.log('Report saved:', data);
+            }
+        });
+        
+        // View past report
+        function viewReport(reportId) {
+            // In a real implementation, this would fetch the report from local storage
+            // For now, we'll simulate it with a modal
+            
+            const modalContent = document.getElementById('reportModalContent');
+            modalContent.innerHTML = `
+                <div class="report-tabs">
+                    <button class="report-tab active" onclick="showReportTab('modalSummary')">Summary</button>
+                    <button class="report-tab" onclick="showReportTab('modalAdvice')">Advice</button>
+                </div>
+                
+                <div id="modalSummary" class="report-tab-content active">
+                    <h3>Financial Summary</h3>
+                    <div class="report-content">
+                        <p>This is a placeholder for the financial summary of report ${reportId}.</p>
+                        <p>In a real implementation, this would show the actual saved report data.</p>
+                    </div>
+                </div>
+                
+                <div id="modalAdvice" class="report-tab-content">
+                    <h3>Improvement Recommendations</h3>
+                    <div class="report-content">
+                        <p>This is a placeholder for the financial advice of report ${reportId}.</p>
+                        <p>In a real implementation, this would show the actual saved advice data.</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('reportModal').style.display = 'block';
+        }
+        
+        function showReportTab(tabId) {
+            document.querySelectorAll('.report-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.report-tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modals = document.getElementsByClassName('modal');
+            for (let i = 0; i < modals.length; i++) {
+                if (event.target === modals[i]) {
+                    modals[i].style.display = 'none';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

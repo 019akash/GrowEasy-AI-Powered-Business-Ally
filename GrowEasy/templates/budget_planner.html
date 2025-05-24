@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Planner - GrowEasy</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <h1><i class="fas fa-chart-line"></i> GrowEasy</h1>
+                <p>AI-Powered Business Ally</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/chatbot"><i class="fas fa-comments"></i> Business Advisor</a></li>
+                <li><a href="/financial-summarizer"><i class="fas fa-file-invoice-dollar"></i> Financial Summarizer</a></li>
+                <li><a href="/budget-planner" class="active"><i class="fas fa-coins"></i> Budget Planner</a></li>
+                <li><a href="/risk-analyzer"><i class="fas fa-shield-alt"></i> Risk Analyzer</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="feature-container">
+        <div class="feature-header">
+            <h1><i class="fas fa-coins"></i> Budget Optimization Planner</h1>
+            <p>Create tailored budget plans based on your financial data and business goals.</p>
+        </div>
+
+        <div class="budget-planner-container">
+            <div class="form-section">
+                <h2>Create Budget Plan</h2>
+                <form id="budgetForm" class="budget-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="revenue">Monthly Revenue ($)</label>
+                            <input type="number" id="revenue" name="revenue" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="expenses">Monthly Expenses ($)</label>
+                            <input type="number" id="expenses" name="expenses" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="growthTarget">Growth Target (%)</label>
+                            <input type="number" id="growthTarget" name="growth_target" min="0" max="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="industry">Industry</label>
+                            <select id="industry" name="industry" required>
+                                <option value="">Select Industry</option>
+                                <option value="Retail">Retail</option>
+                                <option value="Technology">Technology</option>
+                                <option value="Food Service">Food Service</option>
+                                <option value="Manufacturing">Manufacturing</option>
+                                <option value="Healthcare">Healthcare</option>
+                                <option value="Consulting">Consulting</option>
+                                <option value="Construction">Construction</option>
+                                <option value="Finance">Finance</option>
+                                <option value="Education">Education</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="companySize">Company Size</label>
+                            <select id="companySize" name="company_size" required>
+                                <option value="">Select Size</option>
+                                <option value="Micro (1-10 employees)">Micro (1-10 employees)</option>
+                                <option value="Small (11-50 employees)">Small (11-50 employees)</option>
+                                <option value="Medium (51-250 employees)">Medium (51-250 employees)</option>
+                                <option value="Large (250+ employees)">Large (250+ employees)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="goals">Business Goals (separate with commas)</label>
+                        <textarea id="goals" name="goals" rows="4" placeholder="E.g., Increase market share, Reduce operational costs, Launch new product line" required></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="reset" class="btn btn-secondary">Reset</button>
+                        <button type="submit" id="submitBudgetBtn" class="btn btn-primary">Generate Budget Plan</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="budget-results-section" id="budgetResultsSection" style="display: none;">
+                <div class="budget-results-container">
+                    <h2>Your Optimized Budget Plan</h2>
+                    
+                    <div class="budget-summary">
+                        <div class="summary-item">
+                            <div class="summary-icon">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <div class="summary-details">
+                                <h4>Monthly Revenue</h4>
+                                <p id="summaryRevenue">$0</p>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-icon">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                            <div class="summary-details">
+                                <h4>Monthly Expenses</h4>
+                                <p id="summaryExpenses">$0</p>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-icon">
+                                <i class="fas fa-piggy-bank"></i>
+                            </div>
+                            <div class="summary-details">
+                                <h4>Monthly Profit</h4>
+                                <p id="summaryProfit">$0</p>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="summary-details">
+                                <h4>Growth Target</h4>
+                                <p id="summaryGrowth">0%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="budget-allocation">
+                        <h3>Budget Allocation Plan</h3>
+                        <div id="budgetPlanContent" class="content-area"></div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="downloadBudgetBtn" class="btn btn-secondary">
+                            <i class="fas fa-download"></i> Download Plan
+                        </button>
+                        <button id="newBudgetBtn" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create New Plan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="past-plans-section">
+                <h2>Previous Budget Plans</h2>
+                <div class="past-plans-list" id="pastPlansList">
+                    {% if plans %}
+                        {% for plan in plans %}
+                            <div class="past-plan-item">
+                                <div class="past-plan-info">
+                                    <h4>${{ plan.financial_data.revenue }} Monthly Revenue Plan</h4>
+                                    <p>{{ plan.financial_data.industry }} - {{ plan.financial_data.company_size }}</p>
+                                    <span class="timestamp">{{ plan.created_at.split('T')[0] }}</span>
+                                </div>
+                                <div class="past-plan-actions">
+                                    <button class="btn-icon" onclick="viewPlan('{{ plan.id }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="no-data-message">No previous budget plans yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div id="planModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Budget Plan Details</h2>
+                    <span class="close-modal" onclick="closeModal('planModal')">&times;</span>
+                </div>
+                <div class="modal-body" id="planModalContent">
+                    <!-- Plan details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <h3><i class="fas fa-chart-line"></i> GrowEasy</h3>
+                <p>AI-Powered Business Ally</p>
+            </div>
+            <div class="footer-links">
+                <div class="footer-section">
+                    <h4>Features</h4>
+                    <ul>
+                        <li><a href="/chatbot">Business Advisor</a></li>
+                        <li><a href="/financial-summarizer">Financial Summarizer</a></li>
+                        <li><a href="/budget-planner">Budget Planner</a></li>
+                        <li><a href="/risk-analyzer">Risk Analyzer</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">API</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 GrowEasy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const budgetForm = document.getElementById('budgetForm');
+            const submitBudgetBtn = document.getElementById('submitBudgetBtn');
+            const budgetResultsSection = document.getElementById('budgetResultsSection');
+            const newBudgetBtn = document.getElementById('newBudgetBtn');
+            const downloadBudgetBtn = document.getElementById('downloadBudgetBtn');
+            
+            // Handle form submission
+            budgetForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Show loading state
+                submitBudgetBtn.disabled = true;
+                submitBudgetBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+                
+                // Get form data
+                const formData = new FormData(budgetForm);
+                
+                try {
+                    const response = await fetch('/budget-planner', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // Reset button state
+                    submitBudgetBtn.innerHTML = 'Generate Budget Plan';
+                    submitBudgetBtn.disabled = false;
+                    
+                    // Update summary values
+                    document.getElementById('summaryRevenue').textContent = '$' + formData.get('revenue');
+                    document.getElementById('summaryExpenses').textContent = '$' + formData.get('expenses');
+                    document.getElementById('summaryProfit').textContent = '$' + (parseFloat(formData.get('revenue')) - parseFloat(formData.get('expenses')));
+                    document.getElementById('summaryGrowth').textContent = formData.get('growth_target') + '%';
+                    
+                    // Display budget plan
+                    document.getElementById('budgetPlanContent').innerHTML = formatContent(data.plan.budget_allocation);
+                    
+                    // Show results section
+                    budgetResultsSection.style.display = 'block';
+                    
+                    // Scroll to results
+                    budgetResultsSection.scrollIntoView({ behavior: 'smooth' });
+                    
+                    // Save to local storage (for a real implementation)
+                    saveBudgetPlan(data);
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    submitBudgetBtn.innerHTML = 'Generate Budget Plan';
+                    submitBudgetBtn.disabled = false;
+                    alert('Error generating budget plan. Please try again.');
+                }
+            });
+            
+            // New budget button
+            newBudgetBtn.addEventListener('click', function() {
+                resetForm();
+            });
+            
+            // Download budget plan
+            downloadBudgetBtn.addEventListener('click', function() {
+                // Create a text file with the budget plan
+                const revenue = document.getElementById('summaryRevenue').textContent;
+                const expenses = document.getElementById('summaryExpenses').textContent;
+                const profit = document.getElementById('summaryProfit').textContent;
+                const growth = document.getElementById('summaryGrowth').textContent;
+                const plan = document.getElementById('budgetPlanContent').innerText;
+                
+                const content = `
+                    BUDGET OPTIMIZATION PLAN
+                    Generated by GrowEasy on ${new Date().toLocaleDateString()}
+                    
+                    SUMMARY:
+                    Monthly Revenue: ${revenue}
+                    Monthly Expenses: ${expenses}
+                    Monthly Profit: ${profit}
+                    Growth Target: ${growth}
+                    
+                    DETAILED BUDGET ALLOCATION:
+                    ${plan}
+                `;
+                
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'budget_plan_' + Date.now() + '.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+            
+            function resetForm() {
+                budgetForm.reset();
+                budgetResultsSection.style.display = 'none';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            
+            function formatContent(text) {
+                // Convert markdown-style formatting to HTML
+                
+                // Convert headers
+                text = text.replace(/^###\s*(.*?)$/gm, '<h4>$1</h4>');
+                text = text.replace(/^##\s*(.*?)$/gm, '<h3>$1</h3>');
+                text = text.replace(/^#\s*(.*?)$/gm, '<h2>$1</h2>');
+                
+                // Convert bold and italic
+                text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                
+                // Convert lists
+                text = text.replace(/^\d+\.\s+(.*?)$/gm, '<li>$1</li>');
+                text = text.replace(/^-\s+(.*?)$/gm, '<li>$1</li>');
+                
+                // Add proper list tags
+                if (text.includes('<li>')) {
+                    text = text.replace(/(<li>.*?<\/li>)+/gs, function(match) {
+                        if (match.startsWith('<li>')) {
+                            return '<ul>' + match + '</ul>';
+                        }
+                        return match;
+                    });
+                }
+                
+                // Convert line breaks to paragraphs
+                let paragraphs = text.split(/\n\s*\n/);
+                let formattedParagraphs = paragraphs.map(p => {
+                    // Skip if it's already wrapped in HTML tags
+                    if (p.trim().startsWith('<')) {
+                        return p;
+                    }
+                    return `<p>${p.trim()}</p>`;
+                });
+                
+                return formattedParagraphs.join('');
+            }
+            
+            function saveBudgetPlan(data) {
+                // In a real implementation, this would save to local storage or IndexedDB
+                console.log('Budget plan saved:', data);
+            }
+        });
+        
+        // View past plan
+        function viewPlan(planId) {
+            // In a real implementation, this would fetch the plan from local storage
+            // For now, we'll simulate it with a modal
+            
+            const modalContent = document.getElementById('planModalContent');
+            modalContent.innerHTML = `
+                <div class="plan-summary">
+                    <h3>Budget Summary</h3>
+                    <div class="plan-summary-grid">
+                        <div class="plan-summary-item">
+                            <h4>Monthly Revenue</h4>
+                            <p>$10,000</p>
+                        </div>
+                        <div class="plan-summary-item">
+                            <h4>Monthly Expenses</h4>
+                            <p>$7,500</p>
+                        </div>
+                        <div class="plan-summary-item">
+                            <h4>Monthly Profit</h4>
+                            <p>$2,500</p>
+                        </div>
+                        <div class="plan-summary-item">
+                            <h4>Growth Target</h4>
+                            <p>15%</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="plan-details">
+                    <h3>Budget Allocation</h3>
+                    <div class="plan-content">
+                        <p>This is a placeholder for the budget plan details of plan ${planId}.</p>
+                        <p>In a real implementation, this would show the actual saved plan data.</p>
+                    </div>
+                </div>
+                
+                <div class="plan-actions">
+                    <button class="btn btn-secondary" onclick="downloadPlan('${planId}')">
+                        <i class="fas fa-download"></i> Download Plan
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('planModal').style.display = 'block';
+        }
+        
+        function downloadPlan(planId) {
+            // Placeholder for download functionality
+            console.log('Downloading plan:', planId);
+            // In a real implementation, this would generate a file for download
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modals = document.getElementsByClassName('modal');
+            for (let i = 0; i < modals.length; i++) {
+                if (event.target === modals[i]) {
+                    modals[i].style.display = 'none';
+                }
+            }
+        }
+    </script>
+</body>
+</html>                        
